@@ -173,5 +173,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Mac os
+.DS_Store
+
 # datasets
 xbd/
