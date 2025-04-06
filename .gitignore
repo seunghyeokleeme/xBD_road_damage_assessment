@@ -176,5 +176,8 @@ cython_debug/
 # Mac os
 .DS_Store
 
-# datasets
+# src
 xbd/
+datasets/
+results/
+log/
