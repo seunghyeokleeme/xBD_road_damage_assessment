@@ -7,7 +7,7 @@ from PIL import Image
 from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from dataset import xbdDataset
+from dataset import SingleDiffDataset
 from model import UNet
 from utils.checkpoint import load, save
 
@@ -63,10 +63,10 @@ if mode == 'train':
                             std=[0.1309, 0.1144, 0.1081])])
     target_transform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.long, scale=False)])
 
-    train_data = xbdDataset(root=os.path.join(data_dir, 'train'), transform=transform, target_transform=target_transform)
+    train_data = SingleDiffDataset(root=os.path.join(data_dir, 'train'), transform=transform, target_transform=target_transform)
     train_loader = DataLoader(train_data, batch_size, shuffle=True)
 
-    val_data = xbdDataset(root=os.path.join(data_dir, 'hold'), transform=transform, target_transform=target_transform)
+    val_data = SingleDiffDataset(root=os.path.join(data_dir, 'hold'), transform=transform, target_transform=target_transform)
     val_loader = DataLoader(val_data, batch_size, shuffle=False)
 
 else:
@@ -74,7 +74,7 @@ else:
                             std=[0.1309, 0.1144, 0.1081])])
     target_transform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.long, scale=False)])
 
-    test_data = xbdDataset(root=os.path.join(data_dir, 'test'), transform=transform, target_transform=target_transform)
+    test_data = SingleDiffDataset(root=os.path.join(data_dir, 'test'), transform=transform, target_transform=target_transform)
     test_loader = DataLoader(test_data, batch_size, shuffle=False)
 
 net = UNet().to(device)
