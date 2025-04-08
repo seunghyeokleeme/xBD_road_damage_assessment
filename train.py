@@ -7,8 +7,8 @@ from PIL import Image
 from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from dataset import SingleDiffDataset
-from model import UNet
+from dataset import SingleDiffDataset, FusionChangeDataset
+from model import UNet, SiameseDiffUNet
 from utils.checkpoint import load, save
 
 parser = argparse.ArgumentParser(description='Train the xBD road damage assessment model',
@@ -24,6 +24,7 @@ parser.add_argument('--log_dir', default='./log', type=str, dest='log_dir')
 parser.add_argument('--result_dir', default='./results', type=str, dest='result_dir')
 
 parser.add_argument('--mode', default='train', type=str, dest='mode')
+parser.add_argument('--model_type', default='UNet', type=str, dest='model_type')
 parser.add_argument('--train_continue', default='off', type=str, dest='train_continue')
 
 args = parser.parse_args()
@@ -39,6 +40,7 @@ log_dir = args.log_dir
 result_dir = args.result_dir
 
 mode = args.mode
+model_type = args.model_type
 train_continue = args.train_continue
 
 # device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu" # mac
@@ -53,6 +55,7 @@ print('log dir: %s' % log_dir)
 print('result dir: %s' % result_dir)
 print('mode: %s' % mode)
 print('train continue: %s' % train_continue)
+print('model type: %s' % model_type)
 
 # create result dir
 if not os.path.exists(result_dir):
@@ -63,10 +66,14 @@ if mode == 'train':
                             std=[0.1309, 0.1144, 0.1081])])
     target_transform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.long, scale=False)])
 
-    train_data = SingleDiffDataset(root=os.path.join(data_dir, 'train'), transform=transform, target_transform=target_transform)
-    train_loader = DataLoader(train_data, batch_size, shuffle=True)
+    if model_type == 'SiameseDiffUNet':
+        train_data = FusionChangeDataset(root=os.path.join(data_dir, 'train'), transform=transform, target_transform=target_transform)
+        val_data = FusionChangeDataset(root=os.path.join(data_dir, 'hold'), transform=transform, target_transform=target_transform)
+    else:
+        train_data = SingleDiffDataset(root=os.path.join(data_dir, 'train'), transform=transform, target_transform=target_transform)
+        val_data = SingleDiffDataset(root=os.path.join(data_dir, 'hold'), transform=transform, target_transform=target_transform)
 
-    val_data = SingleDiffDataset(root=os.path.join(data_dir, 'hold'), transform=transform, target_transform=target_transform)
+    train_loader = DataLoader(train_data, batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size, shuffle=False)
 
 else:
@@ -74,14 +81,22 @@ else:
                             std=[0.1309, 0.1144, 0.1081])])
     target_transform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.long, scale=False)])
 
-    test_data = SingleDiffDataset(root=os.path.join(data_dir, 'test'), transform=transform, target_transform=target_transform)
+    if model_type == 'SiameseDiffUNet':
+        test_data = FusionChangeDataset(root=os.path.join(data_dir, 'test'), transform=transform, target_transform=target_transform)
+    else:
+        test_data = SingleDiffDataset(root=os.path.join(data_dir, 'test'), transform=transform, target_transform=target_transform)
+
     test_loader = DataLoader(test_data, batch_size, shuffle=False)
 
-net = UNet().to(device)
+if model_type == 'SiameseDiffUNet':
+    net = SiameseDiffUNet().to(device)
+else:
+    net = UNet().to(device)
 
 # Loss function and prediction function
 fn_loss = nn.CrossEntropyLoss().to(device)
 fn_pred = lambda output: torch.argmax(output, dim=1)
+fn_denorm = lambda x, mean, std: x * torch.tensor(std, device=x.device).view(1, -1, 1, 1) + torch.tensor(mean, device=x.device).view(1, -1, 1, 1)
 fn_acc = lambda pred, label: (pred == label).float().mean()
 
 # Optimizer
@@ -89,7 +104,6 @@ optim = torch.optim.Adam(net.parameters(), lr=lr)
 
 writer_train = SummaryWriter(log_dir=os.path.join(log_dir, 'train'), comment='train')
 writer_val = SummaryWriter(log_dir=os.path.join(log_dir, 'val'), comment='val')
-writer_test = SummaryWriter(log_dir=os.path.join(log_dir, 'test'), comment='test')
     
 def train_loop(dataloader, model, fn_loss, optim, epoch, writer):
     num_batches = len(dataloader)
@@ -97,11 +111,21 @@ def train_loop(dataloader, model, fn_loss, optim, epoch, writer):
 
     model.train()
 
-    for batch, (input, mask) in enumerate(dataloader, 1):
-        input = input.to(device)
-        mask = mask.to(device)
-        
-        logits = model(input)
+    for batch, data in enumerate(dataloader, 1):
+        if isinstance(model, SiameseDiffUNet):
+            pre_image, post_image, mask = data
+            pre_image = pre_image.to(device)
+            post_image = post_image.to(device)
+            mask = mask.to(device)
+            
+            logits = model(pre_image, post_image)
+        else:
+            input, mask = data
+            input = input.to(device)
+            mask = mask.to(device)
+            
+            logits = model(input)
+
         loss = fn_loss(logits, mask)
 
         # backward pass
@@ -132,11 +156,21 @@ def eval_loop(dataloader, model, fn_loss, epoch, writer):
     model.eval()
 
     with torch.no_grad():
-        for batch, (input, mask) in enumerate(dataloader, 1):
-            input = input.to(device)
-            mask = mask.to(device)
-            
-            logits = model(input)
+        for batch, data in enumerate(dataloader, 1):
+            if isinstance(model, SiameseDiffUNet):
+                pre_image, post_image, mask = data
+                pre_image = pre_image.to(device)
+                post_image = post_image.to(device)
+                mask = mask.to(device)
+                
+                logits = model(pre_image, post_image)
+            else:
+                input, mask = data
+                input = input.to(device)
+                mask = mask.to(device)
+                
+                logits = model(input)
+
             loss = fn_loss(logits, mask)
 
             eval_loss += loss.item()
@@ -180,11 +214,21 @@ else:
 
     with torch.no_grad():
         net.eval()
-        for batch, (input, mask) in enumerate(test_loader, 1):
-            input = input.to(device)
-            mask = mask.to(device)
-            
-            logits = net(input)
+        for batch, data in enumerate(test_loader, 1):
+            if isinstance(net, SiameseDiffUNet):
+                pre_image, post_image, mask = data
+                pre_image = pre_image.to(device)
+                post_image = post_image.to(device)
+                mask = mask.to(device)
+                
+                logits = net(pre_image, post_image)
+            else:
+                input, mask = data
+                input = input.to(device)
+                mask = mask.to(device)
+                
+                logits = net(input)
+
             loss = fn_loss(logits, mask)
 
             test_loss += loss.item()
@@ -196,14 +240,20 @@ else:
             print("Test: BATCH %04d / %04d | LOSS %.4f | ACC %.4f"%
                     (batch, num_batches, loss.item(), acc.item()))
 
-            diff_min = input.amin(dim=(2, 3), keepdim=True)
-            diff_max = input.amax(dim=(2, 3), keepdim=True)
-            input_vis = (input - diff_min) / (diff_max - diff_min + 1e-8)
+            if isinstance(net, SiameseDiffUNet):
+                input_post_img = fn_denorm(post_image, mean=[0.3096, 0.3428, 0.2564], std=[0.1309, 0.1144, 0.1081])
+            else:
+                diff_min = input.amin(dim=(2, 3), keepdim=True)
+                diff_max = input.amax(dim=(2, 3), keepdim=True)
+                input_vis = (input - diff_min) / (diff_max - diff_min + 1e-8)
         
             # save evaluation images
             for i in range(pred.size(0)):
                 # save input image (3 channels)
-                input_np = input_vis[i].cpu().permute(1, 2, 0).numpy()  # (C, H, W) → (H, W, C)
+                if isinstance(net, SiameseDiffUNet):
+                    input_np = input_post_img[i].cpu().permute(1, 2, 0).numpy()  # (C, H, W) → (H, W, C)
+                else:
+                    input_np = input_vis[i].cpu().permute(1, 2, 0).numpy()  # (C, H, W) → (H, W, C)
                 input_np = (input_np * 255).astype('uint8')  # [0,1] → [0,255]
                 input_save_path = os.path.join(result_dir, 'png', f"test_input_batch{batch:04d}_img{i:02d}.png")
                 Image.fromarray(input_np).save(input_save_path)
@@ -231,4 +281,3 @@ else:
     test_accuracy = correct / num_batches
 
     print('AVERAGE TEST: LOSS %.4f | ACC %.4f'% (test_loss, 100*test_accuracy))
-    writer_test.close()
