@@ -150,6 +150,7 @@ python3 ./eval.py \
 1. **Experiment 1 (Road Detection Semantic Segmentation)**
    - Performs inference on pre- and post-disaster images separately and overlays them for damage assessment
    - Refer to [xBD_road_segmentation](https://github.com/seunghyeokleeme/xBD_road_segmentation.git)
+   - model archarchitecture: ![model1](./result/model1.png)
 
 2. **Experiment 2 (UNet-based)**
    - Generates difference images using the `SingleDiffDataset` class
@@ -161,11 +162,13 @@ python3 ./eval.py \
    - Meaning of difference image:
      - Values close to zero: Unchanged areas (background or normal road)
      - Larger values: Areas with significant changes (damaged road)
+   - model archarchitecture: ![model2](./result/model2.png)
 
 3. **Experiment 3 (SiameseDiffUNet)**
    - Uses `FusionChangeDataset` class to input pre- and post-disaster images separately
    - Extracts features from both time points in the same space using Siamese structure
    - Performs road damage assessment in the decoder after feature fusion (or difference)
+   - model archarchitecture: ![model3](./result/model3.png)
 
 ### Performance Comparison
 
