@@ -11,7 +11,10 @@ The project provides a complete pipeline from data preprocessing to model traini
 - [Installation](#installation)
 - [Dataset](#dataset)
 - [Usage](#usage)
-- [Experimental Results](#experimental-results)
+- [Experiment](#experiment)
+- [Performance Comparison](#performance-comparison)
+- [Result Visualization](#result-visualization)
+- [Reproducible experiment](#reproducible-experiment)
 - [How to Contribute](#how-to-contribute)
 - [License](#license)
 - [References](#references)
@@ -57,11 +60,12 @@ The model uses a deep learning-based network (PyTorch) and applies various prepr
    uv venv
    ```
 
+
 ## Dataset
 
-The project uses the xBD dataset. The dataset should be structured as follows:
+This project uses the **xBD dataset**. The dataset should be structured as follows:
 
-**Note:** Since this project focuses on road segmentation rather than building segmentation, manual labeling is required.
+**Note:** This project focuses on road segmentation, which requires road labels. Since the official xBD dataset does not provide them, we generated the ground-truth masks using the process detailed below.
 
 ```
 datasets/
@@ -81,8 +85,31 @@ datasets/
 
 ### Dataset Download Methods
 
-1. Download the xBD dataset from the [official xBD page](https://xview2.org) and perform road labeling manually.
-2. Alternatively, download the pre-labeled road dataset from [Google Drive link](https://drive.google.com/drive/folders/1Kd329puBn5_Nc_3Lg5READct4Whd7erR). (Recommended)
+1.  Download the dataset from the [official xBD page](https://xview2.org) and generate road labels yourself by following the hybrid labeling strategy outlined below.
+2.  (Recommended) Download the pre-labeled road dataset from this [Google Drive link](https://drive.google.com/drive/folders/1Kd329puBn5_Nc_3Lg5READct4Whd7erR).
+
+### Ground-Truth Generation Process
+
+As the xBD dataset lacks official road annotations, a **Hybrid Labeling Strategy** was developed to generate high-quality ground-truth masks. This approach consists of three sequential steps:
+
+1.  **Baseline Generation via Transfer Learning**
+
+    * A U-Net model was first pre-trained using the `DeepGlobe Road Extraction` dataset, which provides high-fidelity, manually annotated road masks.
+    * This pre-trained model was then applied to the pre-disaster images from the xBD dataset to infer baseline road labels.
+
+2.  **Semi-Automated Labeling Pipeline**
+
+    * Concurrently, we used `YOLOv9` for initial road detection.
+    * The detected regions were then refined using the `Segment Anything Model (SAM)` to generate precise, pixel-level masks, enabling large-scale label generation.
+
+3.  **Hybrid Validation and Quality Enhancement**
+
+    * To ensure label quality, the outputs from both pipelines (1 and 2) were compared.
+    * Cases with significant discrepancies were flagged for manual expert review, where the label was either corrected or selected based on fidelity (e.g., choosing the DeepGlobe-informed mask when SAM results were noisy).
+    * This hybrid pipeline allowed us to construct a reliable, large-scale road mask dataset while minimizing annotation noise.
+
+The final ground-truth masks generated through this process consist of three distinct pixel-level classes: **background (class 0)**, **undamaged road (class 1)**, and **damaged road (class 2)**. This serves as the foundational ground truth for the training and evaluation of all models in this study.
+
 
 ## Usage
 
@@ -111,7 +138,8 @@ You can select the model during training and testing using the `--model_type` op
 python3 ./train.py \
   --lr 1e-3 \
   --batch_size 12 \
-  --num_epoch 50 \
+  --num_epoch 100 \
+  --seed 0 \
   --data_dir "./datasets_512" \
   --ckpt_dir "./checkpoint_v1" \
   --log_dir "./log/exp1" \
@@ -126,7 +154,8 @@ python3 ./train.py \
 python3 ./train.py \
   --lr 1e-3 \
   --batch_size 12 \
-  --num_epoch 50 \
+  --num_epoch 100 \
+  --seed 0 \
   --data_dir "./datasets_512" \
   --ckpt_dir "./checkpoint_v1" \
   --log_dir "./log/exp1" \
@@ -143,7 +172,7 @@ python3 ./eval.py \
   --out_fp "./localization_metrics.json"
 ```
 
-## Experimental Results
+## Experiment
 
 ### Experimental Model Descriptions
 
@@ -151,6 +180,7 @@ python3 ./eval.py \
    - Performs inference on pre- and post-disaster images separately and overlays them for damage assessment
    - Refer to [xBD_road_segmentation](https://github.com/seunghyeokleeme/xBD_road_segmentation)
    - model archarchitecture: ![model1](./result/model1.png)
+   ![method1](./result/Method_1.JPG)
 
 2. **Experiment 2 (UNet-based)**
    - Generates difference images using the `SingleDiffDataset` class
@@ -163,26 +193,56 @@ python3 ./eval.py \
      - Values close to zero: Unchanged areas (background or normal road)
      - Larger values: Areas with significant changes (damaged road)
    - model archarchitecture: ![model2](./result/model2.png)
+   ![method2](./result/Method_2.JPG)
 
 3. **Experiment 3 (SiameseDiffUNet)**
    - Uses `FusionChangeDataset` class to input pre- and post-disaster images separately
    - Extracts features from both time points in the same space using Siamese structure
    - Performs road damage assessment in the decoder after feature fusion (or difference)
    - model archarchitecture: ![model3](./result/model3.png)
+   ![method3](./result/Method_3.JPG)
 
-### Performance Comparison
+---
 
-| Metric | Experiment 1 | Experiment 2 | Experiment 3 |
-|--------|-------------|-------------|-------------|
-| Overall F1 (F1s) | 0.262 | 0.598 | 0.481 |
-| Localization F1 (F1b) | 0.874 | 0.750 | 0.667 |
-| Damage Assessment F1 (F1d) | X | 0.533 | 0.401 |
+## Performance Comparison
 
-### Result Visualization
+![Performance1](./result/performance1.png)
+![Performance2](./result/performance2.png)
+
+## Result Visualization
 
 ![Result 5](./result/result5.png)
 ![Result 6](./result/result6.png)
 ![Result 7](./result/result7.png)
+
+
+## Reproducible experiment
+
+| Model      | Metric      |   Seed 0 |   Seed 1 |   Seed 2 |   Seed 3 |   Mean |   Std. Dev. |
+|:-----------|:------------|---------:|---------:|---------:|---------:|-------:|------------:|
+| Overlay    | F1b         |    0.868 |    0.866 |    0.874 |    0.87  |  0.869 |       0.003 |
+| Overlay    | Precision_b |    0.881 |    0.895 |    0.88  |    0.849 |  0.876 |       0.02  |
+| Overlay    | Recall_b    |    0.855 |    0.839 |    0.868 |    0.893 |  0.864 |       0.023 |
+| Overlay    | IoU_b       |    0.766 |    0.764 |    0.776 |    0.77  |  0.769 |       0.005 |
+| Overlay    | F1s         |    0.26  |    0.26  |    0.262 |    0.261 |  0.261 |       0.001 |
+| Difference | F1b         |    0.761 |    0.771 |    0.748 |    0.759 |  0.76  |       0.01  |
+| Difference | Precision_b |    0.816 |    0.818 |    0.842 |    0.829 |  0.826 |       0.012 |
+| Difference | Recall_b    |    0.713 |    0.73  |    0.672 |    0.699 |  0.704 |       0.024 |
+| Difference | IoU_b       |    0.615 |    0.628 |    0.597 |    0.611 |  0.613 |       0.013 |
+| Difference | F1d         |    0.526 |    0.554 |    0.479 |    0.529 |  0.522 |       0.031 |
+| Difference | Precision_d |    0.633 |    0.619 |    0.657 |    0.645 |  0.638 |       0.016 |
+| Difference | Recall_d    |    0.451 |    0.502 |    0.377 |    0.449 |  0.445 |       0.051 |
+| Difference | IoU_d       |    0.357 |    0.384 |    0.315 |    0.36  |  0.354 |       0.029 |
+| Difference | F1s         |    0.597 |    0.62  |    0.56  |    0.598 |  0.594 |       0.025 |
+| Siamese    | F1b         |    0.628 |    0.718 |    0.638 |    0.73  |  0.678 |       0.053 |
+| Siamese    | Precision_b |    0.877 |    0.884 |    0.915 |    0.868 |  0.886 |       0.02  |
+| Siamese    | Recall_b    |    0.489 |    0.605 |    0.489 |    0.63  |  0.553 |       0.075 |
+| Siamese    | IoU_b       |    0.457 |    0.56  |    0.468 |    0.575 |  0.515 |       0.061 |
+| Siamese    | F1d         |    0.271 |    0.432 |    0.318 |    0.477 |  0.374 |       0.096 |
+| Siamese    | Precision_d |    0.814 |    0.776 |    0.776 |    0.714 |  0.77  |       0.041 |
+| Siamese    | Recall_d    |    0.163 |    0.299 |    0.2   |    0.358 |  0.255 |       0.09  |
+| Siamese    | IoU_d       |    0.157 |    0.275 |    0.189 |    0.313 |  0.234 |       0.073 |
+| Siamese    | F1s         |    0.378 |    0.518 |    0.414 |    0.553 |  0.466 |       0.083 |
 
 ## How to Contribute
 

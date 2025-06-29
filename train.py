@@ -2,6 +2,7 @@ import argparse
 import os
 import numpy as np
 import torch
+import random
 from torch import nn
 from PIL import Image
 from torchvision.transforms import v2
@@ -17,6 +18,7 @@ parser = argparse.ArgumentParser(description='Train the xBD road damage assessme
 parser.add_argument('--lr', default=1e-3, type=float, dest='lr')
 parser.add_argument('--batch_size', default=4, type=int, dest='batch_size')
 parser.add_argument('--num_epoch', default=100, type=int, dest='num_epoch')
+parser.add_argument('--seed', default=0, type=int, dest='seed')
 
 parser.add_argument('--data_dir', default='./datasets', type=str, dest='data_dir')
 parser.add_argument('--ckpt_dir', default='./checkpoint', type=str, dest='ckpt_dir')
@@ -33,6 +35,7 @@ args = parser.parse_args()
 lr = args.lr
 batch_size = args.batch_size
 num_epoch = args.num_epoch
+seed_value = args.seed
 
 data_dir = args.data_dir
 ckpt_dir = args.ckpt_dir
@@ -43,8 +46,13 @@ mode = args.mode
 model_type = args.model_type
 train_continue = args.train_continue
 
+random.seed(seed_value)
+np.random.seed(seed_value)
+torch.manual_seed(seed_value)
+
 # device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu" # mac
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+torch.cuda.manual_seed_all(seed_value)
 
 print('learning rate: %.4e' % lr)
 print('batch size: %d' % batch_size)
@@ -201,7 +209,7 @@ if mode == 'train':
 
         print(f"Epoch {epoch} summary: Train Loss: {loss:.4f} | Train Accuracy: {100*acc:.1f}% | Val Loss: {val_loss:.4f} | Val Accuracy: {100*val_acc:.1f}%")
     
-        if epoch % 5 == 0:
+        if epoch:
             save(ckpt_dir=ckpt_dir, net=net, optim=optim, epoch=epoch)
 
     writer_train.close()
