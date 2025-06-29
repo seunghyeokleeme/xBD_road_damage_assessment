@@ -149,7 +149,7 @@ python3 ./eval.py \
 
 1. **Experiment 1 (Road Detection Semantic Segmentation)**
    - Performs inference on pre- and post-disaster images separately and overlays them for damage assessment
-   - Refer to [xBD_road_segmentation](https://github.com/seunghyeokleeme/xBD_road_segmentation.git)
+   - Refer to [xBD_road_segmentation](https://github.com/seunghyeokleeme/xBD_road_segmentation)
    - model archarchitecture: ![model1](./result/model1.png)
 
 2. **Experiment 2 (UNet-based)**
@@ -183,10 +183,6 @@ python3 ./eval.py \
 ![Result 5](./result/result5.png)
 ![Result 6](./result/result6.png)
 ![Result 7](./result/result7.png)
-
-Detailed experimental results can be found in the following files:
-- Experiment 2: `localization_metrics.json`
-- Experiment 3: `localization_metrics_v2.json`
 
 ## How to Contribute
 
