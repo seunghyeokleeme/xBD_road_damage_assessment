@@ -250,18 +250,17 @@ python3 ./eval.py \
 
 If this dataset or code contributes to your research, please kindly consider citing our paper and give this repo ⭐️ :)
 ```
-@article{cha2025deep,
-      title={Deep Learning-Based Detection and Assessment of Road Damage Caused by Disaster with Satellite Imagery}, 
-      author={Jungeun Cha and Seunghyeok Lee and Hoe-Kyoung Kim},
-      journal={Appl. Sci.},
-      year={2025},
-      volume={15},
-      issue={14},
-      pages={7669},
-      url={https://www.mdpi.com/2076-3417/15/14/7669}, 
-      doi={10.3390/app15147669},
-      note={Submission received: 9 June 2025; Revised: 30 June 2025; Accepted: 7 July 2025; Published: 8 July 2025 (This article belongs to the Special Issue Remote Sensing Image Processing and Application, 2nd Edition)},
-      abstract={Natural disasters can cause severe damage to critical infrastructure such as road networks, significantly delaying rescue and recovery efforts. Conventional road damage assessments rely heavily on manual inspection, which is labor-intensive, time-consuming, and infeasible in large-scale disaster-affected areas. This study aims to propose a deep learning-based framework to automatically detect and quantitatively assess road damage using high-resolution pre- and post-disaster satellite imagery. To achieve this, the study systematically compares three distinct change detection approaches: single-timeframe overlay, difference-based segmentation, and Siamese feature fusion. Experimental results, validated over multiple runs, show the difference-based model achieved the highest overall F1-score (0.594 ± 0.025), surpassing the overlay and Siamese models by approximately 127.6% and 27.5%, respectively. However, a key finding of this study is that even this best-performing model is constrained by a low detection recall (0.445 ± 0.051) for the 'damaged road' class. This reveals that severe class imbalance is a fundamental hurdle in this domain for which standard training strategies are insufficient. This study establishes a crucial benchmark for the field, highlighting that future research must focus on methods that directly address class imbalance to improve detection recall. Despite its quantified limitations, the proposed framework enables the visualization of damage density maps, supporting emergency response strategies such as prioritizing road restoration and accessibility planning in disaster-stricken areas.},
-      keywords={road damage detection and assessment; satellite imagery; deep learning; semantic segmentation; infrastructure resilience}
+@Article{app15147669,
+AUTHOR = {Cha, Jungeun and Lee, Seunghyeok and Kim, Hoe-Kyoung},
+TITLE = {Deep Learning-Based Detection and Assessment of Road Damage Caused by Disaster with Satellite Imagery},
+JOURNAL = {Applied Sciences},
+VOLUME = {15},
+YEAR = {2025},
+NUMBER = {14},
+ARTICLE-NUMBER = {7669},
+URL = {https://www.mdpi.com/2076-3417/15/14/7669},
+ISSN = {2076-3417},
+ABSTRACT = {Natural disasters can cause severe damage to critical infrastructure such as road networks, significantly delaying rescue and recovery efforts. Conventional road damage assessments rely heavily on manual inspection, which is labor-intensive, time-consuming, and infeasible in large-scale disaster-affected areas. This study aims to propose a deep learning-based framework to automatically detect and quantitatively assess road damage using high-resolution pre- and post-disaster satellite imagery. To achieve this, the study systematically compares three distinct change detection approaches: single-timeframe overlay, difference-based segmentation, and Siamese feature fusion. Experimental results, validated over multiple runs, show the difference-based model achieved the highest overall F1-score (0.594 ± 0.025), surpassing the overlay and Siamese models by approximately 127.6% and 27.5%, respectively. However, a key finding of this study is that even this best-performing model is constrained by a low detection recall (0.445 ± 0.051) for the ’damaged road’ class. This reveals that severe class imbalance is a fundamental hurdle in this domain for which standard training strategies are insufficient. This study establishes a crucial benchmark for the field, highlighting that future research must focus on methods that directly address class imbalance to improve detection recall. Despite its quantified limitations, the proposed framework enables the visualization of damage density maps, supporting emergency response strategies such as prioritizing road restoration and accessibility planning in disaster-stricken areas.},
+DOI = {10.3390/app15147669}
 }
 ```
