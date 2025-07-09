@@ -1,31 +1,23 @@
-# xBD Road Damage Assessment
+<div align="center">
+<h1 align="center">xBD Road Damage Assessment</h1>
 
-This repository contains the implementation code for a deep learning model that performs road damage assessment using **xBD** data.  
-The project provides a complete pipeline from data preprocessing to model training, evaluation, and inference.
+<h3>Deep Learning-Based Detection and Assessment of Road Damage Caused by Disaster with Satellite Imagery</h3>
 
-## Table of Contents
 
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Dataset](#dataset)
-- [Usage](#usage)
-- [Experiment](#experiment)
-- [Performance Comparison](#performance-comparison)
-- [Result Visualization](#result-visualization)
-- [Reproducible experiment](#reproducible-experiment)
-- [How to Contribute](#how-to-contribute)
-- [License](#license)
-- [References](#references)
+[Jungeun Cha](https://orcid.org/0009-0000-0579-6405)<sup>1,†</sup>, [Seunghyeok Lee](https://orcid.org/0009-0009-4709-7931)<sup>2, †</sup>, [Hoe-Kyoung Kim](https://orcid.org/0000-0001-5057-2558)<sup>3, *</sup>
 
-## Project Overview
+
+<sup>1</sup> Department of Urban Planning and Landscape Architecture, Dong-A University, <sup>2</sup> Department of Electronic Engineering, Dong-A University, <sup>3</sup> Department of Urban Planning and Engineering, Dong-A University, <sup>†</sup> These authors contributed equally to this work
+
+</div>
+
+## 🛰️ Project Overview
 
 This project implements a road damage assessment model using the xBD dataset.  
 While the model primarily focuses on road damage assessment, it also performs road detection (semantic segmentation).
 The model uses a deep learning-based network (PyTorch) and applies various preprocessing and data augmentation techniques to enhance learning performance.
 
-## Key Features
+## 🔑 Key Features
 
 - **End-to-End Pipeline:** Provides a complete workflow from data preprocessing to model training, evaluation, and inference
 - **Modular Design:** Each module (data loader, model, training script, etc.) is independently structured for easy extension
@@ -33,7 +25,7 @@ The model uses a deep learning-based network (PyTorch) and applies various prepr
 - **GPU Support:** Fast training environment through CUDA support
 - **Diverse Model Architectures:** Supports both UNet and SiameseDiffUNet models
 
-## Requirements
+## 🧩 Requirements
 
 - Python 3.8 or higher
 - PyTorch
@@ -41,7 +33,7 @@ The model uses a deep learning-based network (PyTorch) and applies various prepr
 - Other Python libraries: numpy, opencv-python, albumentations, matplotlib, etc.  
   *(See `pyproject.toml` for details)*
 
-## Installation
+## 🍳 Installation
 
 1. Clone the repository:
    ```bash
@@ -61,7 +53,7 @@ The model uses a deep learning-based network (PyTorch) and applies various prepr
    ```
 
 
-## Dataset
+## 💿 Dataset
 
 This project uses the **xBD dataset**. The dataset should be structured as follows:
 
@@ -111,7 +103,7 @@ As the xBD dataset lacks official road annotations, a **Hybrid Labeling Strategy
 The final ground-truth masks generated through this process consist of three distinct pixel-level classes: **background (class 0)**, **undamaged road (class 1)**, and **damaged road (class 2)**. This serves as the foundational ground truth for the training and evaluation of all models in this study.
 
 
-## Usage
+## 🍚 Usage
 
 ### 1. Data Preprocessing
 ```bash
@@ -172,7 +164,7 @@ python3 ./eval.py \
   --out_fp "./localization_metrics.json"
 ```
 
-## Experiment
+## 🧪 Experiment
 
 ### Experimental Model Descriptions
 
@@ -204,19 +196,19 @@ python3 ./eval.py \
 
 ---
 
-## Performance Comparison
+## 🎮 Performance Comparison
 
 ![Performance1](./result/performance1.png)
 ![Performance2](./result/performance2.png)
 
-## Result Visualization
+## ⭐️ Result Visualization
 
 ![Result 5](./result/result5.png)
 ![Result 6](./result/result6.png)
 ![Result 7](./result/result7.png)
 
 
-## Reproducible experiment
+## 🧭 Reproducible experiment
 
 | Model      | Metric      |   Seed 0 |   Seed 1 |   Seed 2 |   Seed 3 |   Mean |   Std. Dev. |
 |:-----------|:------------|---------:|---------:|---------:|---------:|-------:|------------:|
@@ -244,7 +236,7 @@ python3 ./eval.py \
 | Siamese    | IoU_d       |    0.157 |    0.275 |    0.189 |    0.313 |  0.234 |       0.073 |
 | Siamese    | F1s         |    0.378 |    0.518 |    0.414 |    0.553 |  0.466 |       0.083 |
 
-## How to Contribute
+## 🌱 How to Contribute
 
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature/YourFeature`).
@@ -253,14 +245,23 @@ python3 ./eval.py \
 5. Push to the remote repository (`git push origin feature/YourFeature`).
 6. Create a Pull Request.
 
-## License
 
-This project is distributed under the [MIT License](LICENSE).
+## 📜 Reference
 
-## References
-
-- [xBD Official Page](https://xview2.org)
-- [PyTorch Documentation](https://pytorch.org/docs/)
-- [Unet: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
-- Gupta, R. et al. (2019). "xBD: A dataset for assessing building damage from satellite imagery." *arXiv preprint arXiv:1911.09296*. [arXiv](https://arxiv.org/abs/1911.09296)
-- Alisjahbana, I. et al. (2024). "DeepDamageNet: A two-step deep-learning model for multi-disaster building damage segmentation and classification using satellite imagery." *arXiv preprint arXiv:2405.04800*. [arXiv](https://arxiv.org/abs/2405.04800) 
+If this dataset or code contributes to your research, please kindly consider citing our paper and give this repo ⭐️ :)
+```
+@article{cha2025deep,
+      title={Deep Learning-Based Detection and Assessment of Road Damage Caused by Disaster with Satellite Imagery}, 
+      author={Jungeun Cha and Seunghyeok Lee and Hoe-Kyoung Kim},
+      journal={Appl. Sci.},
+      year={2025},
+      volume={15},
+      issue={14},
+      pages={7669},
+      url={https://www.mdpi.com/2076-3417/15/14/7669}, 
+      doi={10.3390/app15147669},
+      note={Submission received: 9 June 2025; Revised: 30 June 2025; Accepted: 7 July 2025; Published: 8 July 2025 (This article belongs to the Special Issue Remote Sensing Image Processing and Application, 2nd Edition)},
+      abstract={Natural disasters can cause severe damage to critical infrastructure such as road networks, significantly delaying rescue and recovery efforts. Conventional road damage assessments rely heavily on manual inspection, which is labor-intensive, time-consuming, and infeasible in large-scale disaster-affected areas. This study aims to propose a deep learning-based framework to automatically detect and quantitatively assess road damage using high-resolution pre- and post-disaster satellite imagery. To achieve this, the study systematically compares three distinct change detection approaches: single-timeframe overlay, difference-based segmentation, and Siamese feature fusion. Experimental results, validated over multiple runs, show the difference-based model achieved the highest overall F1-score (0.594 ± 0.025), surpassing the overlay and Siamese models by approximately 127.6% and 27.5%, respectively. However, a key finding of this study is that even this best-performing model is constrained by a low detection recall (0.445 ± 0.051) for the 'damaged road' class. This reveals that severe class imbalance is a fundamental hurdle in this domain for which standard training strategies are insufficient. This study establishes a crucial benchmark for the field, highlighting that future research must focus on methods that directly address class imbalance to improve detection recall. Despite its quantified limitations, the proposed framework enables the visualization of damage density maps, supporting emergency response strategies such as prioritizing road restoration and accessibility planning in disaster-stricken areas.},
+      keywords={road damage detection and assessment; satellite imagery; deep learning; semantic segmentation; infrastructure resilience}
+}
+```
